@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.Flow
 @Entity(tableName = "MyPlayList")
 data class Song(
     @PrimaryKey @ColumnInfo(name = "Song_id") val songId: String,
-    //@ColumnInfo(name = "Song_url") val SongURL: String,
+    @ColumnInfo(name = "Song_url") val songURL: String,
     @ColumnInfo(name = "Song_Img") val songImg: String,
     @ColumnInfo(name = "Song_name") val songName: String,
 )
@@ -39,6 +39,9 @@ interface SongDao{
     @Query("SELECT * FROM MyPlayList WHERE Song_name = :songName")
     fun getSongName(songName: String): Flow<List<Song>>
 
+    @Query("SELECT Song_url FROM MyPlayList")
+    fun getSongURL(): List<String>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(song: Song)
 
@@ -53,7 +56,7 @@ interface SongDao{
 }
 
 //構造子
-@Database(entities = [Song::class], version = 1)
+@Database(entities = [Song::class], version = 1, exportSchema = true)
 abstract class SongDataBase: RoomDatabase(){
     abstract fun SongDao(): SongDao
 

@@ -1,5 +1,7 @@
 package com.example.mixerconverter
 
+import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
@@ -34,14 +38,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.mixerconverter.ui.theme.MixerConverterTheme
 import kotlinx.coroutines.launch
@@ -60,10 +60,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navHostController: NavHostController = rememberNavController()
 
                     //呼叫MyApp並傳入viewModel
-                    MyApp(viewModel, navHostController)
+                    MyApp(viewModel)
                 }
             }
         }
@@ -125,9 +124,8 @@ private fun SongItem(items: Song, viewModel: MyViewModel?) {
 
 //定義整個畫面
 @Composable
-private fun MyApp(viewModel: MyViewModel? = null, navHostController: NavHostController?) {
+private fun MyApp(viewModel: MyViewModel? = null) {
     val items: List<Song>
-    val MockController: NavHostController
 
     if (viewModel != null){
         //定義itemState來收集songflow發射的數據並賦值給items
@@ -137,29 +135,22 @@ private fun MyApp(viewModel: MyViewModel? = null, navHostController: NavHostCont
         items = getSample()
     }
 
-    if (navHostController == null){
-        MockController = rememberNavController()
-    } else{
-        MockController = navHostController
-    }
-
-    AppNavHost(navHostController = MockController, viewModel = viewModel, items = items)
+    EditPlayList(items = items, viewModel = viewModel)
 }
 
 private fun getSample(): List<Song>{
     return listOf(
-        Song(songId = "1", songName = "这才是《牧马城市》真正的原唱，歌声唱尽辛酸，听得催人泪下", songImg = "https://i.ytimg.com/vi/y_Z2b5HALN4/default.jpg"),
-        Song(songId = "2", songName = "这才是《牧马城市》真正的原唱，歌声唱尽辛酸，听得催人泪下", songImg = "https://i.ytimg.com/vi/y_Z2b5HALN4/default.jpg"),
-        Song(songId = "3", songName = "这才是《牧马城市》真正的原唱，歌声唱尽辛酸，听得催人泪下", songImg =  "https://i.ytimg.com/vi/y_Z2b5HALN4/default.jpg")
+        Song(songId = "1", songName = "这才是《牧马城市》真正的原唱，歌声唱尽辛酸，听得催人泪下", songImg = "https://i.ytimg.com/vi/y_Z2b5HALN4/default.jpg", songURL = ""),
+        Song(songId = "2", songName = "这才是《牧马城市》真正的原唱，歌声唱尽辛酸，听得催人泪下", songImg = "https://i.ytimg.com/vi/y_Z2b5HALN4/default.jpg", songURL = ""),
+        Song(songId = "3", songName = "这才是《牧马城市》真正的原唱，歌声唱尽辛酸，听得催人泪下", songImg =  "https://i.ytimg.com/vi/y_Z2b5HALN4/default.jpg", songURL = "")
     )
 }
 
-private fun ViewPlayList(navController: NavController){
-
-}
-
 @Composable
-private fun EditPlayList(navController: NavController, items: List<Song>, viewModel: MyViewModel?){
+private fun EditPlayList(items: List<Song>, viewModel: MyViewModel?){
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     Surface(
         modifier = Modifier
             .padding(
@@ -176,26 +167,28 @@ private fun EditPlayList(navController: NavController, items: List<Song>, viewMo
                     .height(80.dp)
                     .fillMaxWidth()
             ){
-                //縮圖
+                /*//縮圖
                 AsyncImage(
                     model = "",
                     contentDescription = "",
-                    modifier = Modifier.size(48.dp)
-                )
+                    modifier = Modifier.size(70.dp)
+                )*/
+                Icon(imageVector = Icons.Filled.Favorite, contentDescription = "", Modifier.size(48.dp))
                 Text(
-                    text = "this is ontop text",
+                    text = "歌單名稱",
                     modifier = Modifier
                         .padding(8.dp)
-                        .weight(0.5f)
+                        .weight(1f)
+                        .fillMaxHeight(1f)
                 )
                 //顯示總歌曲數量
                 Text(
                     text = "Total Songs : ${items.size}",
                     modifier = Modifier
                         .background(color = Color.LightGray)
-                        .padding(end = 16.dp)
-                        //.align(Alignment.CenterHorizontally)
-                        .weight(0.5f)
+                        .padding(8.dp)
+                        .weight(1f)
+                        .fillMaxHeight(1f)
 
                 )
             }
@@ -264,13 +257,13 @@ private fun EditPlayList(navController: NavController, items: List<Song>, viewMo
                     )
                 }
 
-                //Icon按鈕，功能是刪除所以Icon使用垃圾桶並設置紅色
+                //Icon按鈕，功能是匯出
                 IconButton(
                     onClick = {
-                        /*coroutineScope.launch{
-                            Log.d("click", "IconButton CLick")
-                            viewModel?.deleteSong(items)
-                        }*/
+                        coroutineScope.launch{
+                            Log.d("click", "IconButton Share CLick")
+                            viewModel?.exportSongURLtoFile(context = context, "test")
+                        }
                     },
                     enabled = true,
                     modifier = Modifier.weight(1f)
@@ -286,18 +279,8 @@ private fun EditPlayList(navController: NavController, items: List<Song>, viewMo
     }
 }
 
-
-@Composable
-fun AppNavHost(navHostController: NavHostController, viewModel: MyViewModel?, items: List<Song>){
-    NavHost(navController = navHostController, startDestination = "ViewPlayList") {
-        composable("ViewPlayList"){ ViewPlayList(navController = navHostController)}
-        composable("EditPlayList"){ EditPlayList(navController = navHostController, items = items, viewModel = viewModel)}
-    }
-}
-
-
 @Preview(showBackground = true)
 @Composable
 private fun PreviewMyapp(){
-    MyApp(null, null)
+    MyApp(null)
 }

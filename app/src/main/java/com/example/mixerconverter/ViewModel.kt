@@ -1,6 +1,7 @@
 package com.example.mixerconverter
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,13 +14,15 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
+import java.io.File
+import java.io.FileOutputStream
 
 class MyViewModel(application: Application) : AndroidViewModel(application) {
     val refUrl = "https://www.mbplayer.com/list/125368176"
     val apiUrl =
         "https://www.mbplayer.com/api/playlist?reverse=true&type=playlist&vectorId=125368176&firstLaunch=1714635076160"
 
-    //val ytUrl = "https://www.youtube.com/watch?v="
+    val ytUrl = "https://www.youtube.com/watch?v="
 
     private val _songflow: MutableStateFlow<List<Song>> = MutableStateFlow(emptyList())
     val songflow: StateFlow<List<Song>> = _songflow
@@ -67,8 +70,10 @@ class MyViewModel(application: Application) : AndroidViewModel(application) {
                         //"tt" 為歌名
                         val name = element.asJsonObject.get("tt").asString
 
+                        val url = ytUrl + id
+
                         //回傳並add到List裡
-                        val songData: Song = Song(songId = id, songImg = img, songName = name)
+                        val songData: Song = Song(songId = id, songImg = img, songName = name, songURL = url)
                         songDataList.add(songData)
                     } else {
                         println("歌曲不存在")
@@ -107,6 +112,18 @@ class MyViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun updateSong(song: Song){
         _songflow.value = _songflow.value.filter { it.songId != song.songId }
+    }
+
+    suspend fun exportSongURLtoFile(context: Context, filename: String){
+        withContext(Dispatchers.IO){
+            val songurls = songDao?.getSongURL()
+            val file = File(context.getExternalFilesDir(null), filename)
+            FileOutputStream(file).use {fos ->
+                songurls?.forEach {url ->
+                    fos.write((url + System.lineSeparator()).toByteArray())
+                }
+            }
+        }
     }
 
 }
