@@ -1,6 +1,7 @@
 # MixerConverter
 
 一個小小的自用腳本，也是課堂上的期末報告  
+另外一份圖片較多的PDF版本 : [here](https://github.com/Zhan5410/kotlin_paper)
 
 ## 目錄
 
